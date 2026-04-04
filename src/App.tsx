@@ -10,7 +10,7 @@ import { cn } from './lib/utils';
 const INITIAL_WORKERS: Worker[] = [
   { id: '1', name: 'Mario Rossi' },
   { id: '2', name: 'Luigi Bianchi' },
-  { id: '3', name: 'Anna Verdi' },
+  { id: '3', name: 'Paolo Verdi' },
 ];
 
 const INITIAL_PROJECTS: Project[] = [
