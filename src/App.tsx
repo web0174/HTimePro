@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/src/hooks/useLocalStorage';
 import { Worker, Project, HourLog, ThemeColor } from '@/src/types';
 import BottomNav from '@/src/components/BottomNav';
+import Header from '@/src/components/Header';
 import InsertionTab from '@/src/components/InsertionTab';
 import SummaryTab from '@/src/components/SummaryTab';
 import SettingsTab from '@/src/components/SettingsTab';
@@ -111,7 +112,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black transition-colors duration-300">
-      <main className="max-w-2xl mx-auto px-4 pt-8 pb-32">
+      <Header themeColor={themeColor} />
+      <main className="max-w-2xl mx-auto px-4 pt-24 pb-32">
         {activeTab === 0 && (
           <InsertionTab 
             workers={workers} 
