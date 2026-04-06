@@ -72,6 +72,8 @@ export default function SettingsTab({
   };
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [confirmingWorkerId, setConfirmingWorkerId] = useState<string | null>(null);
+  const [confirmingProjectId, setConfirmingProjectId] = useState<string | null>(null);
 
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -107,6 +109,36 @@ export default function SettingsTab({
     };
     reader.readAsText(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleAddWorker = () => {
+    const trimmed = newWorker.trim();
+    if (!trimmed) return;
+    
+    const exists = workers.some(w => w.name.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      setStatusMessage({ text: "Questo lavoratore esiste già.", type: 'error' });
+      setTimeout(() => setStatusMessage(null), 3000);
+      return;
+    }
+    
+    onAddWorker(trimmed);
+    setNewWorker('');
+  };
+
+  const handleAddProject = () => {
+    const trimmed = newProject.trim();
+    if (!trimmed) return;
+    
+    const exists = projects.some(p => p.name.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      setStatusMessage({ text: "Questo progetto esiste già.", type: 'error' });
+      setTimeout(() => setStatusMessage(null), 3000);
+      return;
+    }
+    
+    onAddProject(trimmed);
+    setNewProject('');
   };
 
   return (
@@ -191,7 +223,7 @@ export default function SettingsTab({
               className="flex-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 transition-all"
             />
             <button 
-              onClick={() => { if(newWorker) { onAddWorker(newWorker); setNewWorker(''); } }}
+              onClick={handleAddWorker}
               className={cn("p-2 rounded-xl text-white active:scale-90 transition-transform", colorMap[themeColor])}
             >
               <UserPlus size={20} />
@@ -200,10 +232,35 @@ export default function SettingsTab({
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {workers.map(worker => (
               <div key={worker.id} className="flex items-center justify-between py-2 border-b border-zinc-50 dark:border-zinc-800 last:border-0">
-                <span className="font-medium">{worker.name}</span>
-                <button onClick={() => onRemoveWorker(worker.id)} className="text-zinc-300 hover:text-rose-500 transition-colors">
-                  <Trash2 size={16} />
-                </button>
+                {confirmingWorkerId === worker.id ? (
+                  <div className="flex-1 flex items-center justify-between bg-rose-50 dark:bg-rose-900/20 px-3 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200">
+                    <span className="text-xs font-bold text-rose-600">Eliminare {worker.name}?</span>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => setConfirmingWorkerId(null)} 
+                        className="text-xs font-bold text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                      >
+                        Annulla
+                      </button>
+                      <button 
+                        onClick={() => { onRemoveWorker(worker.id); setConfirmingWorkerId(null); }} 
+                        className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
+                      >
+                        Sì, elimina
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <span className="font-medium">{worker.name}</span>
+                    <button 
+                      onClick={() => setConfirmingWorkerId(worker.id)} 
+                      className="p-1 text-zinc-300 hover:text-rose-500 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -226,7 +283,7 @@ export default function SettingsTab({
               className="flex-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 transition-all"
             />
             <button 
-              onClick={() => { if(newProject) { onAddProject(newProject); setNewProject(''); } }}
+              onClick={handleAddProject}
               className={cn("p-2 rounded-xl text-white active:scale-90 transition-transform", colorMap[themeColor])}
             >
               <Briefcase size={20} />
@@ -235,10 +292,35 @@ export default function SettingsTab({
           <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
             {projects.map(project => (
               <div key={project.id} className="flex items-center justify-between py-2 border-b border-zinc-50 dark:border-zinc-800 last:border-0">
-                <span className="font-medium">{project.name}</span>
-                <button onClick={() => onRemoveProject(project.id)} className="text-zinc-300 hover:text-rose-500 transition-colors">
-                  <Trash2 size={16} />
-                </button>
+                {confirmingProjectId === project.id ? (
+                  <div className="flex-1 flex items-center justify-between bg-rose-50 dark:bg-rose-900/20 px-3 py-1.5 rounded-xl animate-in fade-in zoom-in-95 duration-200">
+                    <span className="text-xs font-bold text-rose-600">Eliminare {project.name}?</span>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => setConfirmingProjectId(null)} 
+                        className="text-xs font-bold text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+                      >
+                        Annulla
+                      </button>
+                      <button 
+                        onClick={() => { onRemoveProject(project.id); setConfirmingProjectId(null); }} 
+                        className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
+                      >
+                        Sì, elimina
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <span className="font-medium">{project.name}</span>
+                    <button 
+                      onClick={() => setConfirmingProjectId(project.id)} 
+                      className="p-1 text-zinc-300 hover:text-rose-500 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </div>

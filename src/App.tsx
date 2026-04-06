@@ -45,7 +45,14 @@ export default function App() {
   };
 
   const handleAddWorker = (name: string) => {
-    setWorkers(prev => [...prev, { id: crypto.randomUUID(), name }]);
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+    
+    setWorkers(prev => {
+      const exists = prev.some(w => w.name.toLowerCase() === trimmedName.toLowerCase());
+      if (exists) return prev;
+      return [...prev, { id: crypto.randomUUID(), name: trimmedName }];
+    });
   };
 
   const handleRemoveWorker = (id: string) => {
@@ -53,7 +60,14 @@ export default function App() {
   };
 
   const handleAddProject = (name: string) => {
-    setProjects(prev => [...prev, { id: crypto.randomUUID(), name }]);
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+
+    setProjects(prev => {
+      const exists = prev.some(p => p.name.toLowerCase() === trimmedName.toLowerCase());
+      if (exists) return prev;
+      return [...prev, { id: crypto.randomUUID(), name: trimmedName }];
+    });
   };
 
   const handleRemoveProject = (id: string) => {
@@ -74,15 +88,19 @@ export default function App() {
       setProjects(data.projects);
       setLogs(data.logs);
     } else {
-      // Merge workers and projects by name to avoid duplicates
+      // Merge workers and projects by name to avoid duplicates (case-insensitive)
       const mergedWorkers = [...workers];
       data.workers.forEach((nw: Worker) => {
-        if (!mergedWorkers.some(w => w.name === nw.name)) mergedWorkers.push(nw);
+        if (!mergedWorkers.some(w => w.name.toLowerCase() === nw.name.toLowerCase())) {
+          mergedWorkers.push(nw);
+        }
       });
       
       const mergedProjects = [...projects];
       data.projects.forEach((np: Project) => {
-        if (!mergedProjects.some(p => p.name === np.name)) mergedProjects.push(np);
+        if (!mergedProjects.some(p => p.name.toLowerCase() === np.name.toLowerCase())) {
+          mergedProjects.push(np);
+        }
       });
 
       setWorkers(mergedWorkers);
