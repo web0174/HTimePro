@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useLocalStorage } from './hooks/useLocalStorage';
-import { Worker, Project, HourLog, ThemeColor } from './types';
-import BottomNav from './components/BottomNav';
-import InsertionTab from './components/InsertionTab';
-import SummaryTab from './components/SummaryTab';
-import SettingsTab from './components/SettingsTab';
-import { cn } from './lib/utils';
+import { useLocalStorage } from '@/src/hooks/useLocalStorage';
+import { Worker, Project, HourLog, ThemeColor } from '@/src/types';
+import BottomNav from '@/src/components/BottomNav';
+import InsertionTab from '@/src/components/InsertionTab';
+import SummaryTab from '@/src/components/SummaryTab';
+import SettingsTab from '@/src/components/SettingsTab';
+import { cn } from '@/src/lib/utils';
 
 const INITIAL_WORKERS: Worker[] = [
   { id: '1', name: 'Mario Rossi' },

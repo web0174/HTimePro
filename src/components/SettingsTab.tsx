@@ -71,6 +71,10 @@ export default function SettingsTab({
     amber: 'text-amber-600',
   };
 
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
   const handleExport = () => {
     const data = { workers, projects, logs };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -94,9 +98,11 @@ export default function SettingsTab({
           throw new Error("Formato file non valido.");
         }
         onImport(data, importMode);
-        alert("Dati importati con successo!");
+        setStatusMessage({ text: "Dati importati con successo!", type: 'success' });
+        setTimeout(() => setStatusMessage(null), 3000);
       } catch (err) {
-        alert("Errore durante l'importazione: " + (err as Error).message);
+        setStatusMessage({ text: "Errore: " + (err as Error).message, type: 'error' });
+        setTimeout(() => setStatusMessage(null), 5000);
       }
     };
     reader.readAsText(file);
@@ -109,6 +115,16 @@ export default function SettingsTab({
         <h1 className="text-3xl font-bold tracking-tight">Impostazioni</h1>
         <p className="text-zinc-500 dark:text-zinc-400">Personalizza e gestisci i tuoi dati.</p>
       </header>
+
+      {/* Status Message */}
+      {statusMessage && (
+        <div className={cn(
+          "fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-2xl shadow-xl font-bold animate-in slide-in-from-top-4 duration-300",
+          statusMessage.type === 'success' ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
+        )}>
+          {statusMessage.text}
+        </div>
+      )}
 
       {/* Theme & Appearance */}
       <section className="space-y-4">
@@ -297,25 +313,44 @@ export default function SettingsTab({
             </button>
           </div>
 
-          <button 
-            onClick={() => {
-              if (confirm("Sei sicuro di voler resettare tutti i dati? Questa azione è irreversibile.")) {
-                onReset();
-              }
-            }}
-            className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-600">
-                <RotateCcw size={20} />
-              </div>
-              <div className="text-left">
-                <p className="font-semibold text-rose-600">Reset Totale</p>
-                <p className="text-xs text-zinc-500">Cancella log, lavoratori e progetti.</p>
+          {showResetConfirm ? (
+            <div className="p-3 bg-rose-50 dark:bg-rose-900/10 rounded-xl border border-rose-200 dark:border-rose-900/30 animate-in zoom-in-95 duration-200">
+              <p className="text-sm font-bold text-rose-600 mb-3 text-center">Sei proprio sicuro? Tutti i dati verranno cancellati.</p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-bold text-sm"
+                >
+                  Annulla
+                </button>
+                <button 
+                  onClick={() => {
+                    onReset();
+                    setShowResetConfirm(false);
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-rose-600 text-white font-bold text-sm shadow-lg shadow-rose-200 dark:shadow-none"
+                >
+                  Sì, Resetta
+                </button>
               </div>
             </div>
-            <ChevronRight size={20} className="text-zinc-300 group-hover:text-rose-500" />
-          </button>
+          ) : (
+            <button 
+              onClick={() => setShowResetConfirm(true)}
+              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-900/30 text-rose-600">
+                  <RotateCcw size={20} />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-rose-600">Reset Totale</p>
+                  <p className="text-xs text-zinc-500">Cancella log, lavoratori e progetti.</p>
+                </div>
+              </div>
+              <ChevronRight size={20} className="text-zinc-300 group-hover:text-rose-500" />
+            </button>
+          )}
         </div>
       </section>
     </div>

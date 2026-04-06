@@ -20,6 +20,8 @@ export default function InsertionTab({ workers, projects, onSave, themeColor }: 
   const [currentProject, setCurrentProject] = useState<string>('');
   const [currentHours, setCurrentHours] = useState<number>(0);
 
+  const [error, setError] = useState<string | null>(null);
+
   const themeColors: Record<string, string> = {
     blue: 'bg-blue-600 hover:bg-blue-700 text-white',
     indigo: 'bg-indigo-600 hover:bg-indigo-700 text-white',
@@ -78,8 +80,30 @@ export default function InsertionTab({ workers, projects, onSave, themeColor }: 
   };
 
   const handleSave = () => {
-    if (selectedWorkers.length === 0 || activeProjects.length === 0) {
-      alert("Seleziona almeno un lavoratore e un progetto.");
+    let finalProjects = [...activeProjects];
+    
+    // Auto-add current project if it completes the total hours
+    if (currentProject && currentHours > 0) {
+      const project = projects.find(p => p.id === currentProject);
+      if (project && (Math.abs((allocatedHours + currentHours) - totalHours) < 0.01)) {
+        finalProjects.push({
+          projectId: project.id,
+          projectName: project.name,
+          hours: currentHours
+        });
+      }
+    }
+
+    if (selectedWorkers.length === 0) {
+      setError("Seleziona almeno un lavoratore.");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    const finalAllocated = finalProjects.reduce((sum, p) => sum + p.hours, 0);
+    if (finalProjects.length === 0 || Math.abs(finalAllocated - totalHours) > 0.01) {
+      setError(`Le ore totali dei progetti (${finalAllocated.toFixed(1)}) devono corrispondere alle ore totali giornaliere (${totalHours.toFixed(1)}).`);
+      setTimeout(() => setError(null), 5000);
       return;
     }
 
@@ -91,15 +115,21 @@ export default function InsertionTab({ workers, projects, onSave, themeColor }: 
       totalHours,
       workerIds: selectedWorkers,
       workerNames,
-      projects: activeProjects,
+      projects: finalProjects,
       createdAt: new Date().toISOString()
     });
 
     // Reset form
     setSelectedWorkers([]);
     setActiveProjects([]);
+    setCurrentProject('');
     setTotalHours(8);
   };
+
+  const isReadyToSave = (selectedWorkers.length > 0) && (
+    (Math.abs(allocatedHours - totalHours) < 0.01) || 
+    (currentProject !== '' && Math.abs((allocatedHours + currentHours) - totalHours) < 0.01)
+  );
 
   return (
     <div className="space-y-8 pb-24">
@@ -221,16 +251,24 @@ export default function InsertionTab({ workers, projects, onSave, themeColor }: 
       </section>
 
       {/* Save Button */}
-      <button 
-        onClick={handleSave}
-        className={cn(
-          "w-full py-4 rounded-2xl font-bold text-lg shadow-lg shadow-zinc-200 dark:shadow-none flex items-center justify-center gap-2 active:scale-[0.98] transition-all",
-          themeColors[themeColor]
+      <div className="space-y-2">
+        {error && (
+          <p className="text-center text-xs font-bold text-rose-600 animate-in fade-in slide-in-from-bottom-1">
+            {error}
+          </p>
         )}
-      >
-        Salva Log
-        <ChevronRight size={20} />
-      </button>
+        <button 
+          onClick={handleSave}
+          disabled={!isReadyToSave}
+          className={cn(
+            "w-full py-4 rounded-2xl font-bold text-lg shadow-lg shadow-zinc-200 dark:shadow-none flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none",
+            themeColors[themeColor]
+          )}
+        >
+          {isReadyToSave ? "Salva Log" : "Completa l'allocazione ore"}
+          <ChevronRight size={20} />
+        </button>
+      </div>
     </div>
   );
 }
